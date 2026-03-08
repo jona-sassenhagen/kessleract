@@ -1292,6 +1292,10 @@ function advanceLevel() {
   loadLevel(currentLevelIndex + 1);
 }
 
+function canAdvanceFromRunEnd() {
+  return state.runEnded && state.sectorCleared && currentLevelIndex < LEVELS.length - 1;
+}
+
 function togglePause() {
   if (state.runEnded || state.rockets.length > 0) {
     return;
@@ -1921,6 +1925,10 @@ canvas.addEventListener("pointerdown", (event) => {
 });
 
 canvas.addEventListener("pointerup", (event) => {
+  if (canAdvanceFromRunEnd()) {
+    advanceLevel();
+    return;
+  }
   const pointer = canvasPointFromEvent(event);
   if (event.pointerType === "mouse") {
     trackSatelliteAtPoint(pointer);
@@ -1964,7 +1972,11 @@ window.addEventListener("keydown", (event) => {
     togglePause();
   } else if (event.key === "Enter") {
     event.preventDefault();
-    fireRocket();
+    if (canAdvanceFromRunEnd()) {
+      advanceLevel();
+    } else {
+      fireRocket();
+    }
   } else if (event.key.toLowerCase() === "p") {
     togglePause();
   } else if (event.key.toLowerCase() === "r") {

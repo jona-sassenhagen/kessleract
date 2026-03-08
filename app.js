@@ -1360,21 +1360,28 @@ function syncHud() {
 function drawBackground() {
   ctx.clearRect(0, 0, CONFIG.width, CONFIG.height);
 
+  // Stars — amber-warm tints
   ctx.save();
-  ctx.globalAlpha = 0.3;
-  for (let i = 0; i < 170; i += 1) {
-    const x = (i * 131) % CONFIG.width;
-    const y = (i * 97) % CONFIG.height;
-    const r = (i % 5) + 0.5;
-    ctx.fillStyle = i % 11 === 0 ? "rgba(255,255,255,0.8)" : "rgba(180,220,255,0.45)";
+  ctx.globalAlpha = 0.28;
+  for (let i = 0; i < 200; i += 1) {
+    const x = (i * 131 + 47) % CONFIG.width;
+    const y = (i * 97 + 23) % CONFIG.height;
+    const r = (i % 4) * 0.55 + 0.4;
+    // Occasional bright star, rest are dim amber-warm
+    ctx.fillStyle = i % 13 === 0
+      ? "rgba(255, 240, 200, 0.95)"
+      : i % 7 === 0
+        ? "rgba(255, 200, 100, 0.60)"
+        : "rgba(210, 170, 80, 0.35)";
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();
 
+  // Coordinate grid — amber
   ctx.save();
-  ctx.strokeStyle = "rgba(96, 196, 255, 0.08)";
+  ctx.strokeStyle = "rgba(195, 138, 12, 0.07)";
   ctx.lineWidth = 1;
   for (let x = 40; x < CONFIG.width; x += 80) {
     ctx.beginPath();
@@ -1408,7 +1415,7 @@ function drawGravityWells() {
     );
     gradient.addColorStop(0, well.glow);
     gradient.addColorStop(0.55, well.core);
-    gradient.addColorStop(1, "#0d1a28");
+    gradient.addColorStop(1, "#080500");
     ctx.fillStyle = gradient;
     ctx.beginPath();
     ctx.arc(well.x, well.y, well.radius, 0, Math.PI * 2);
@@ -1425,7 +1432,7 @@ function drawGravityWells() {
 
 function drawCompositeWell(well) {
   ctx.save();
-  ctx.fillStyle = "#0d1a28";
+  ctx.fillStyle = "#080500";
   ctx.strokeStyle = well.ring;
   ctx.lineWidth = 2;
   for (const lobe of well.lobes) {
@@ -1439,7 +1446,7 @@ function drawCompositeWell(well) {
     );
     gradient.addColorStop(0, well.glow);
     gradient.addColorStop(0.58, well.core);
-    gradient.addColorStop(1, "#0d1a28");
+    gradient.addColorStop(1, "#080500");
     ctx.globalAlpha = 0.95;
     ctx.fillStyle = gradient;
     ctx.beginPath();
@@ -1480,15 +1487,20 @@ function drawCompositeWell(well) {
 
 function drawLauncher() {
   ctx.save();
-  ctx.fillStyle = "#12273b";
+  // Base platform
+  ctx.fillStyle = "#1a1000";
+  ctx.strokeStyle = "rgba(232, 160, 0, 0.40)";
+  ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(CONFIG.launchX - 24, CONFIG.launchY + 14);
   ctx.lineTo(CONFIG.launchX + 28, CONFIG.launchY + 14);
   ctx.lineTo(CONFIG.launchX + 4, CONFIG.launchY - 30);
   ctx.closePath();
   ctx.fill();
+  ctx.stroke();
 
-  ctx.strokeStyle = "#79e0ff";
+  // Aim line — phosphor green
+  ctx.strokeStyle = "#00e87a";
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.moveTo(CONFIG.launchX, CONFIG.launchY);
@@ -1621,7 +1633,7 @@ function trackSatelliteAtPoint(pointer) {
 function drawYieldPips(satellite) {
   const yieldCount = satellite.debrisYield;
   if (yieldCount === 0) {
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.82)";
+    ctx.strokeStyle = "rgba(255, 210, 100, 0.70)";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(-satellite.radius + 2, satellite.radius - 2);
@@ -1637,7 +1649,7 @@ function drawYieldPips(satellite) {
   const startX = -((columns - 1) * spacing) / 2;
   const startY = -((rows - 1) * spacing) / 2;
 
-  ctx.fillStyle = "#f9feff";
+  ctx.fillStyle = "#ffe8a0";
   for (let index = 0; index < yieldCount; index += 1) {
     const row = rows === 1 ? 0 : Math.floor(index / columns);
     const col = rows === 1 ? index : index % columns;
@@ -1657,7 +1669,7 @@ function drawSatellites() {
     ctx.translate(satellite.x, satellite.y);
     ctx.strokeStyle = satellite.color;
     ctx.lineWidth = isTracked ? 3.8 : satellite.yieldBand === "large" ? 2.8 : 2.2;
-    ctx.fillStyle = satellite.debrisYield === 0 ? "rgba(10, 18, 28, 0.9)" : "rgba(223, 239, 255, 0.96)";
+    ctx.fillStyle = satellite.debrisYield === 0 ? "rgba(18, 12, 0, 0.92)" : "rgba(255, 240, 195, 0.94)";
 
     ctx.beginPath();
     ctx.arc(0, 0, satellite.radius, 0, Math.PI * 2);
@@ -1665,8 +1677,15 @@ function drawSatellites() {
     ctx.stroke();
 
     if (isTracked) {
-      ctx.strokeStyle = "rgba(121, 224, 255, 0.92)";
+      // Amber targeting ring
+      ctx.strokeStyle = "rgba(232, 160, 0, 0.90)";
       ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, satellite.radius + 7, 0, Math.PI * 2);
+      ctx.stroke();
+      // Inner glow
+      ctx.strokeStyle = "rgba(232, 160, 0, 0.35)";
+      ctx.lineWidth = 6;
       ctx.beginPath();
       ctx.arc(0, 0, satellite.radius + 7, 0, Math.PI * 2);
       ctx.stroke();
@@ -1695,20 +1714,24 @@ function drawPreview() {
     return;
   }
 
+  // Launch point dot — phosphor green
   ctx.save();
-  ctx.fillStyle = "rgba(121, 224, 255, 0.95)";
+  ctx.fillStyle = "rgba(0, 232, 122, 0.95)";
+  ctx.shadowBlur = 8;
+  ctx.shadowColor = "rgba(0, 232, 122, 0.8)";
   ctx.beginPath();
   ctx.arc(state.preview.launchPoint.x, state.preview.launchPoint.y, 5, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 
-  drawTrail(state.preview.rocketTrail, "rgba(121, 224, 255, 0.82)", 2.5);
+  // Rocket preview trail — phosphor green
+  drawTrail(state.preview.rocketTrail, "rgba(0, 232, 122, 0.82)", 2.5);
   for (const trail of state.preview.debrisTrails) {
-    drawTrail(trail, "rgba(255, 209, 102, 0.72)", 2.2);
+    drawTrail(trail, "rgba(232, 160, 0, 0.72)", 2.2);
     const endPoint = trail[trail.length - 1];
     if (endPoint) {
       ctx.save();
-      ctx.fillStyle = "rgba(255, 209, 102, 0.92)";
+      ctx.fillStyle = "rgba(232, 160, 0, 0.92)";
       ctx.beginPath();
       ctx.arc(endPoint.x, endPoint.y, 3.5, 0, Math.PI * 2);
       ctx.fill();
@@ -1718,22 +1741,34 @@ function drawPreview() {
 
   if (state.preview.impactPoint) {
     ctx.save();
-    ctx.fillStyle = "rgba(255, 209, 102, 0.92)";
+    // Impact point — bright green cross-hairs
+    ctx.fillStyle = "rgba(0, 232, 122, 0.92)";
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = "rgba(0, 232, 122, 0.7)";
     ctx.beginPath();
     ctx.arc(state.preview.impactPoint.x, state.preview.impactPoint.y, 5, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = "rgba(255, 107, 107, 0.9)";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(0, 232, 122, 0.80)";
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.arc(state.preview.impactPoint.x, state.preview.impactPoint.y, 16, 0, Math.PI * 2);
     ctx.stroke();
+
+    ctx.strokeStyle = "rgba(232, 160, 0, 0.55)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 6]);
+    ctx.beginPath();
+    ctx.arc(state.preview.impactPoint.x, state.preview.impactPoint.y, 26, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
     ctx.restore();
   }
 
   for (const marker of state.preview.secondaryMarkers) {
+    // Dashed line from debris shard end to predicted hit
     ctx.save();
-    ctx.strokeStyle = "rgba(255, 159, 28, 0.88)";
+    ctx.strokeStyle = "rgba(232, 160, 0, 0.70)";
     ctx.lineWidth = 1.5;
     ctx.setLineDash([6, 8]);
     ctx.beginPath();
@@ -1742,34 +1777,59 @@ function drawPreview() {
     ctx.stroke();
     ctx.restore();
 
+    // Target circle
     ctx.save();
-    ctx.fillStyle = "rgba(255, 159, 28, 0.2)";
-    ctx.strokeStyle = "rgba(255, 159, 28, 0.96)";
-    ctx.lineWidth = 2.5;
+    ctx.fillStyle = "rgba(232, 160, 0, 0.12)";
+    ctx.strokeStyle = "rgba(232, 160, 0, 0.90)";
+    ctx.lineWidth = 2;
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = "rgba(232, 160, 0, 0.5)";
     ctx.beginPath();
     ctx.arc(marker.x, marker.y, 20, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
+    ctx.shadowBlur = 0;
     ctx.fillStyle = marker.color;
-    ctx.font = "bold 14px Georgia";
+    ctx.font = "bold 13px 'Share Tech Mono', monospace";
     ctx.textAlign = "center";
-    ctx.fillText(marker.label, marker.x, marker.y + 5);
-    ctx.font = "11px Georgia";
-    ctx.fillText(`${marker.debrisYield}`, marker.x, marker.y + 19);
+    ctx.fillText(marker.label, marker.x, marker.y + 4);
+    ctx.font = "10px 'Share Tech Mono', monospace";
+    ctx.fillStyle = "rgba(232, 160, 0, 0.75)";
+    ctx.fillText(`${marker.debrisYield}`, marker.x, marker.y + 17);
     ctx.restore();
   }
 
+  // Targeting readout panel — amber terminal
   ctx.save();
-  ctx.fillStyle = "rgba(5, 14, 23, 0.88)";
-  ctx.fillRect(CONFIG.width - 308, 18, 278, 122);
-  ctx.fillStyle = "#ecf7ff";
-  ctx.font = "14px Georgia";
-  ctx.fillText(`Direct hit: ${state.preview.directHits}`, CONFIG.width - 290, 44);
-  ctx.fillText(`Predicted debris hits: ${state.preview.chainHits}`, CONFIG.width - 290, 68);
-  ctx.fillText(`Total destroyed if fired: ${state.preview.totalHits}`, CONFIG.width - 290, 92);
-  ctx.fillStyle = "#90a9be";
-  ctx.fillText("Size = yield band, pips/slash = exact debris count", CONFIG.width - 290, 118);
+  const panelX = CONFIG.width - 312;
+  const panelY = 14;
+  const panelW = 286;
+  const panelH = 126;
+  ctx.fillStyle = "rgba(10, 7, 0, 0.92)";
+  ctx.fillRect(panelX, panelY, panelW, panelH);
+  // Top accent bar
+  ctx.fillStyle = "rgba(232, 160, 0, 0.55)";
+  ctx.fillRect(panelX, panelY, panelW, 2);
+  // Border
+  ctx.strokeStyle = "rgba(232, 160, 0, 0.28)";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(panelX, panelY, panelW, panelH);
+  // Left accent bar
+  ctx.fillStyle = "rgba(232, 160, 0, 0.40)";
+  ctx.fillRect(panelX, panelY, 2, panelH);
+
+  ctx.fillStyle = "#c09030";
+  ctx.font = "13px 'Share Tech Mono', monospace";
+  ctx.textAlign = "left";
+  ctx.fillText(`DIRECT HIT      ${state.preview.directHits}`, panelX + 16, panelY + 28);
+  ctx.fillText(`DEBRIS CHAIN    ${state.preview.chainHits}`, panelX + 16, panelY + 52);
+  ctx.fillStyle = "#e8a000";
+  ctx.font = "bold 13px 'Share Tech Mono', monospace";
+  ctx.fillText(`TOTAL KILLS     ${state.preview.totalHits}`, panelX + 16, panelY + 76);
+  ctx.fillStyle = "rgba(90, 64, 16, 0.85)";
+  ctx.font = "11px 'Share Tech Mono', monospace";
+  ctx.fillText("size=band  pips/slash=debris count", panelX + 16, panelY + 108);
   ctx.restore();
 }
 
@@ -1806,7 +1866,7 @@ function drawActiveObjects() {
   }
 
   for (const rocket of state.rockets) {
-    drawTrail(rocket.trail, "rgba(121, 224, 255, 0.25)", 2);
+    drawTrail(rocket.trail, "rgba(0, 232, 122, 0.22)", 2);
     ctx.save();
     ctx.fillStyle = rocket.color;
     ctx.beginPath();
@@ -1831,26 +1891,50 @@ function drawRunEnd() {
     return;
   }
   ctx.save();
-  ctx.fillStyle = "rgba(4, 12, 20, 0.72)";
+
+  // Dark overlay — warm amber tint
+  ctx.fillStyle = "rgba(8, 5, 0, 0.82)";
   ctx.fillRect(0, 0, CONFIG.width, CONFIG.height);
-  ctx.fillStyle = "#ecf7ff";
+
+  // Horizontal rule lines
+  const cy = CONFIG.height / 2;
+  ctx.strokeStyle = "rgba(232, 160, 0, 0.22)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(CONFIG.width * 0.15, cy - 58);
+  ctx.lineTo(CONFIG.width * 0.85, cy - 58);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(CONFIG.width * 0.15, cy + 90);
+  ctx.lineTo(CONFIG.width * 0.85, cy + 90);
+  ctx.stroke();
+
+  // Title — Orbitron + amber glow
+  const title = state.sectorCleared
+    ? currentLevelIndex === LEVELS.length - 1
+      ? "CAMPAIGN COMPLETE"
+      : "SECTOR CLEAR"
+    : "RUN COMPLETE";
   ctx.textAlign = "center";
-  ctx.font = "bold 42px Georgia";
-  ctx.fillText(
-    state.sectorCleared
-      ? currentLevelIndex === LEVELS.length - 1
-        ? "Campaign Complete"
-        : "Sector Clear"
-      : "Run Complete",
-    CONFIG.width / 2,
-    CONFIG.height / 2 - 26,
-  );
-  ctx.font = "24px Georgia";
-  ctx.fillText(`${state.destroyedCount} satellites down`, CONFIG.width / 2, CONFIG.height / 2 + 10);
-  ctx.fillText(`${state.debris.length} debris shards remain in orbit`, CONFIG.width / 2, CONFIG.height / 2 + 44);
-  ctx.font = "16px Georgia";
-  ctx.fillStyle = "#90a9be";
-  ctx.fillText(`Final score ${state.score}`, CONFIG.width / 2, CONFIG.height / 2 + 78);
+  ctx.shadowBlur = 24;
+  ctx.shadowColor = "rgba(232, 160, 0, 0.65)";
+  ctx.fillStyle = "#e8a000";
+  ctx.font = "bold 46px 'Orbitron', sans-serif";
+  ctx.fillText(title, CONFIG.width / 2, cy - 12);
+  ctx.shadowBlur = 0;
+
+  // Stats — Share Tech Mono
+  ctx.fillStyle = "#c09030";
+  ctx.font = "22px 'Share Tech Mono', monospace";
+  ctx.fillText(`${state.destroyedCount} SATELLITES DOWN`, CONFIG.width / 2, cy + 26);
+  ctx.font = "18px 'Share Tech Mono', monospace";
+  ctx.fillText(`${state.debris.length} DEBRIS SHARDS IN ORBIT`, CONFIG.width / 2, cy + 56);
+
+  // Score — dimmed
+  ctx.fillStyle = "#5a4010";
+  ctx.font = "14px 'Share Tech Mono', monospace";
+  ctx.fillText(`FINAL SCORE  ${state.score}`, CONFIG.width / 2, cy + 80);
+
   ctx.restore();
 }
 

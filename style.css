@@ -182,6 +182,10 @@ button:disabled {
   padding: 14px;
 }
 
+.game-viewport {
+  position: relative;
+}
+
 .orientation-hint {
   display: none;
   margin-bottom: 12px;
@@ -212,6 +216,12 @@ button:disabled {
   font-size: 1.2rem;
   min-height: 1.6em;
   white-space: nowrap;
+}
+
+.mobile-top-strip,
+.mobile-angle-control,
+.mobile-corner-button {
+  display: none;
 }
 
 canvas {
@@ -331,5 +341,146 @@ canvas {
 
   .tips-drawer:not([open]) {
     margin-bottom: 0;
+  }
+}
+
+@media (max-width: 960px) and (orientation: landscape) {
+  body {
+    overflow: hidden;
+  }
+
+  .layout {
+    width: 100vw;
+    margin: 0;
+    gap: 0;
+  }
+
+  .intro {
+    display: none;
+  }
+
+  .hud-panel {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    background: #04080d;
+    min-height: 100vh;
+    min-height: 100svh;
+  }
+
+  .orientation-hint,
+  .hud {
+    display: none;
+  }
+
+  .game-viewport {
+    height: 100vh;
+    height: 100svh;
+    width: 100vw;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(18, 56, 83, 0.2), rgba(4, 10, 16, 1) 72%),
+      #04080d;
+  }
+
+  .mobile-top-strip {
+    position: absolute;
+    top: max(10px, env(safe-area-inset-top));
+    left: 84px;
+    right: 84px;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  .mobile-readout {
+    padding: 8px 10px;
+    border-radius: 14px;
+    text-align: center;
+    background: rgba(5, 14, 23, 0.78);
+    border: 1px solid rgba(141, 199, 255, 0.14);
+    backdrop-filter: blur(10px);
+  }
+
+  .mobile-readout strong {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.94rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mobile-angle-control {
+    position: absolute;
+    top: 50%;
+    left: max(10px, env(safe-area-inset-left));
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    transform: translateY(-50%);
+    padding: 14px 10px;
+    width: 62px;
+    border-radius: 28px;
+    background: rgba(5, 14, 23, 0.72);
+    border: 1px solid rgba(121, 224, 255, 0.2);
+    backdrop-filter: blur(10px);
+  }
+
+  .mobile-angle-label,
+  .mobile-angle-value {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .mobile-angle-control input[type="range"] {
+    width: 168px;
+    margin: 52px 0;
+    transform: rotate(-90deg);
+    transform-origin: center;
+  }
+
+  canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    object-fit: contain;
+  }
+
+  .mobile-corner-button {
+    position: absolute;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 148px;
+    min-height: 64px;
+    padding: 16px 22px;
+    font-size: 1rem;
+    font-weight: 700;
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.34);
+    backdrop-filter: blur(10px);
+  }
+
+  .mobile-pause-button {
+    left: max(12px, env(safe-area-inset-left));
+  }
+
+  .mobile-fire-button {
+    right: max(12px, env(safe-area-inset-right));
   }
 }

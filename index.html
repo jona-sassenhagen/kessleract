@@ -79,7 +79,34 @@
             <strong id="status-value">Tracking</strong>
           </div>
         </div>
-        <canvas id="game" width="1280" height="800" aria-label="Satellite interception game"></canvas>
+        <div class="game-viewport">
+          <div class="mobile-top-strip" aria-hidden="true">
+            <div class="mobile-readout">
+              <span class="label">Sector</span>
+              <strong id="mobile-level-value">Level 1: Tutorial Orbit</strong>
+            </div>
+            <div class="mobile-readout">
+              <span class="label">Status</span>
+              <strong id="mobile-status-value">Tracking</strong>
+            </div>
+            <div class="mobile-readout">
+              <span class="label">Rockets</span>
+              <strong id="mobile-rockets-value">4</strong>
+            </div>
+          </div>
+          <label class="mobile-angle-control" for="mobile-angle">
+            <span class="mobile-angle-label">Aim</span>
+            <input id="mobile-angle" type="range" min="0" max="88" value="46" aria-label="Mobile launch angle">
+            <span id="mobile-angle-value" class="mobile-angle-value">46°</span>
+          </label>
+          <canvas id="game" width="1280" height="800" aria-label="Satellite interception game"></canvas>
+          <button id="mobile-pause-button" type="button" class="mobile-corner-button mobile-pause-button secondary">
+            Pause Orbit
+          </button>
+          <button id="mobile-fire-button" type="button" class="mobile-corner-button mobile-fire-button">
+            Fire Rocket
+          </button>
+        </div>
       </section>
     </main>
 

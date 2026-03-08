@@ -7,19 +7,26 @@ const simulationSpeedInput = document.getElementById("simulation-speed");
 const simulationSpeedValue = document.getElementById("simulation-speed-value");
 const pauseButton = document.getElementById("pause-button");
 const fireButton = document.getElementById("fire-button");
+const mobilePauseButton = document.getElementById("mobile-pause-button");
+const mobileFireButton = document.getElementById("mobile-fire-button");
 const debrisModeButton = document.getElementById("debris-mode-button");
 const stopTrackingButton = document.getElementById("stop-tracking-button");
 const restartButton = document.getElementById("restart-button");
 const nextLevelButton = document.getElementById("next-level-button");
+const mobileAngleInput = document.getElementById("mobile-angle");
+const mobileAngleValue = document.getElementById("mobile-angle-value");
 
 const levelValue = document.getElementById("level-value");
 const hudLevelValue = document.getElementById("hud-level-value");
+const mobileLevelValue = document.getElementById("mobile-level-value");
 const objectiveValue = document.getElementById("objective-value");
 const rocketsValue = document.getElementById("rockets-value");
+const mobileRocketsValue = document.getElementById("mobile-rockets-value");
 const destroyedValue = document.getElementById("destroyed-value");
 const chainsValue = document.getElementById("chains-value");
 const scoreValue = document.getElementById("score-value");
 const statusValue = document.getElementById("status-value");
+const mobileStatusValue = document.getElementById("mobile-status-value");
 
 const POINTER_TAP_SLOP = 18;
 let activeCanvasPointer = null;
@@ -1206,7 +1213,9 @@ function setAngleValue(angle) {
   const maxAngle = Number(angleInput.max);
   const clamped = Math.min(maxAngle, Math.max(minAngle, angle));
   angleInput.value = String(clamped);
+  mobileAngleInput.value = String(clamped);
   angleValue.textContent = `${angleInput.value}\u00b0`;
+  mobileAngleValue.textContent = `${angleInput.value}\u00b0`;
 }
 
 function clearTrackingAndSetAngle(angle) {
@@ -1296,12 +1305,14 @@ function syncHud() {
   const level = currentLevel();
   levelValue.textContent = level.name;
   hudLevelValue.textContent = level.name;
+  mobileLevelValue.textContent = level.name;
   objectiveValue.textContent = level.objective;
   rocketsValue.textContent = String(state.rocketsRemaining);
+  mobileRocketsValue.textContent = String(state.rocketsRemaining);
   destroyedValue.textContent = String(state.destroyedCount);
   chainsValue.textContent = String(state.totalChains);
   scoreValue.textContent = String(state.score);
-  statusValue.textContent = state.runEnded
+  const statusText = state.runEnded
     ? state.sectorCleared
       ? currentLevelIndex === LEVELS.length - 1
         ? "Campaign Complete"
@@ -1314,20 +1325,30 @@ function syncHud() {
         : state.rockets.length > 0
           ? "Missile Live"
           : "Tracking";
+  statusValue.textContent = statusText;
+  mobileStatusValue.textContent = statusText;
 
   angleValue.textContent = `${angleInput.value}\u00b0`;
+  mobileAngleInput.value = angleInput.value;
+  mobileAngleValue.textContent = `${angleInput.value}\u00b0`;
   simulationSpeedValue.textContent = `${Number(simulationSpeedInput.value).toFixed(2)}\u00d7`;
-  pauseButton.textContent = state.paused ? "Resume Orbit" : "Pause Orbit";
+  const pauseText = state.paused ? "Resume Orbit" : "Pause Orbit";
+  pauseButton.textContent = pauseText;
+  mobilePauseButton.textContent = pauseText;
   debrisModeButton.textContent =
     debrisMode === DEBRIS_MODES.classic
       ? "Debris Mode: Classic"
       : "Debris Mode: Ordered";
-  pauseButton.disabled = state.runEnded || state.rockets.length > 0;
-  fireButton.disabled =
+  const pauseDisabled = state.runEnded || state.rockets.length > 0;
+  pauseButton.disabled = pauseDisabled;
+  mobilePauseButton.disabled = pauseDisabled;
+  const fireDisabled =
     state.runEnded ||
     state.rocketsRemaining <= 0 ||
     state.rockets.length > 0 ||
     state.launchCooldown > 0;
+  fireButton.disabled = fireDisabled;
+  mobileFireButton.disabled = fireDisabled;
   stopTrackingButton.disabled = !trackedSatellite();
   nextLevelButton.disabled = currentLevelIndex === LEVELS.length - 1;
 }
@@ -1858,6 +1879,13 @@ angleInput.addEventListener("input", () => {
   syncHud();
 });
 
+mobileAngleInput.addEventListener("input", () => {
+  clearTrackedSatellite();
+  setAngleValue(Number(mobileAngleInput.value));
+  refreshPrediction();
+  syncHud();
+});
+
 simulationSpeedInput.addEventListener("input", () => {
   syncHud();
 });
@@ -1948,6 +1976,8 @@ window.addEventListener("keydown", (event) => {
 
 pauseButton.addEventListener("click", togglePause);
 fireButton.addEventListener("click", fireRocket);
+mobilePauseButton.addEventListener("click", togglePause);
+mobileFireButton.addEventListener("click", fireRocket);
 stopTrackingButton.addEventListener("click", () => {
   clearTrackedSatellite();
   refreshPrediction();

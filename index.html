@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kessleract</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <main class="layout">
+      <section class="panel intro">
+        <p class="eyebrow">Orbital Chain-Reaction Puzzle</p>
+        <h1>Kessleract</h1>
+        <p class="lede">
+          Launch into orbit, read the debris forecast, and solve each sector with as few anti-satellite rockets as possible.
+        </p>
+        <div class="mission-card">
+          <span class="label">Current Level</span>
+          <strong id="level-value">Level 1: Tutorial Orbit</strong>
+          <p id="objective-value">Read the first debris branch and line up one clean chain.</p>
+        </div>
+        <div class="controls-grid">
+          <label class="slider-block" for="angle">
+            <span>Launch angle</span>
+            <input id="angle" type="range" min="0" max="88" value="46">
+            <span id="angle-value">46°</span>
+          </label>
+          <label class="slider-block" for="simulation-speed">
+            <span>Simulation speed</span>
+            <input id="simulation-speed" type="range" min="0.25" max="3" step="0.25" value="1">
+            <span id="simulation-speed-value">1.00×</span>
+          </label>
+          <div class="buttons">
+            <button id="pause-button" type="button" class="secondary">Pause Orbit</button>
+            <button id="fire-button" type="button">Fire Rocket</button>
+            <button id="debris-mode-button" type="button" class="secondary">Debris Mode: Classic</button>
+            <button id="stop-tracking-button" type="button" class="secondary">Stop Tracking</button>
+            <button id="restart-button" type="button" class="secondary">Restart Run</button>
+          </div>
+          <button id="next-level-button" type="button" class="secondary wide-button">Next Level</button>
+        </div>
+        <details class="tips-drawer" open>
+          <summary>Briefing and readout guide</summary>
+          <ul class="tips">
+            <li>The cyan preview shows the shot. Amber trails show the first debris fan.</li>
+            <li>Satellite size shows the debris band. Pips, or a slash for zero, show the exact debris count.</li>
+            <li>Orbit color marks the lane family. Smaller, tighter crossing lanes are the best chain-makers.</li>
+          </ul>
+        </details>
+      </section>
+
+      <section class="panel hud-panel">
+        <div class="orientation-hint" role="note">
+          Rotate to landscape for the cleanest targeting view.
+        </div>
+        <div class="hud">
+          <div class="hud-primary hud-sector">
+            <span class="label">Sector</span>
+            <strong id="hud-level-value">Level 1: Tutorial Orbit</strong>
+          </div>
+          <div class="hud-primary">
+            <span class="label">Rockets</span>
+            <strong id="rockets-value">4</strong>
+          </div>
+          <div class="hud-secondary">
+            <span class="label">Destroyed</span>
+            <strong id="destroyed-value">0</strong>
+          </div>
+          <div class="hud-secondary">
+            <span class="label">Chains</span>
+            <strong id="chains-value">0</strong>
+          </div>
+          <div class="hud-primary">
+            <span class="label">Score</span>
+            <strong id="score-value">0</strong>
+          </div>
+          <div class="hud-primary hud-status">
+            <span class="label">Status</span>
+            <strong id="status-value">Tracking</strong>
+          </div>
+        </div>
+        <canvas id="game" width="1280" height="800" aria-label="Satellite interception game"></canvas>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,6 +1,7 @@
-PORT ?= 8001
+PORT ?= 8000
+BIND ?= ::
 
 .PHONY: run
 
 run:
-	python3 -m http.server $(PORT)
+	python3 -m http.server $(PORT) --bind $(BIND)

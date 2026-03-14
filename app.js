@@ -9,27 +9,43 @@ const pauseButton = document.getElementById("pause-button");
 const fireButton = document.getElementById("fire-button");
 const mobilePauseButton = document.getElementById("mobile-pause-button");
 const mobileFireButton = document.getElementById("mobile-fire-button");
+const mobileResetButton = document.getElementById("mobile-reset-button");
+const mobileAngleDecreaseButton = document.getElementById("mobile-angle-decrease");
+const mobileAngleIncreaseButton = document.getElementById("mobile-angle-increase");
 const debrisModeButton = document.getElementById("debris-mode-button");
 const stopTrackingButton = document.getElementById("stop-tracking-button");
 const restartButton = document.getElementById("restart-button");
 const nextLevelButton = document.getElementById("next-level-button");
-const mobileAngleInput = document.getElementById("mobile-angle");
 const mobileAngleValue = document.getElementById("mobile-angle-value");
 
 const levelValue = document.getElementById("level-value");
 const hudLevelValue = document.getElementById("hud-level-value");
 const mobileLevelValue = document.getElementById("mobile-level-value");
+const mobileLandscapeLevelValue = document.getElementById("mobile-landscape-level-value");
 const objectiveValue = document.getElementById("objective-value");
 const rocketsValue = document.getElementById("rockets-value");
 const mobileRocketsValue = document.getElementById("mobile-rockets-value");
+const mobileLandscapeRocketsValue = document.getElementById("mobile-landscape-rockets-value");
 const destroyedValue = document.getElementById("destroyed-value");
 const chainsValue = document.getElementById("chains-value");
 const scoreValue = document.getElementById("score-value");
 const statusValue = document.getElementById("status-value");
-const mobileStatusValue = document.getElementById("mobile-status-value");
 
 const POINTER_TAP_SLOP = 18;
+const MOBILE_VIEW_MAX_WIDTH = 960;
 let activeCanvasPointer = null;
+
+function isMobileView() {
+  return window.matchMedia("(max-width: 960px), (pointer: coarse)").matches;
+}
+
+function isMobileLandscapeView() {
+  return window.matchMedia("((max-width: 960px) and (orientation: landscape)), ((pointer: coarse) and (orientation: landscape))").matches;
+}
+
+function satelliteVisualScale() {
+  return isMobileView() ? 1.35 : 1;
+}
 
 canvas.width = 1280;
 canvas.height = 800;
@@ -1213,9 +1229,8 @@ function setAngleValue(angle) {
   const maxAngle = Number(angleInput.max);
   const clamped = Math.min(maxAngle, Math.max(minAngle, angle));
   angleInput.value = String(clamped);
-  mobileAngleInput.value = String(clamped);
   angleValue.textContent = `${angleInput.value}\u00b0`;
-  mobileAngleValue.textContent = `${angleInput.value}\u00b0`;
+  if (mobileAngleValue) mobileAngleValue.textContent = `${angleInput.value}\u00b0`;
 }
 
 function clearTrackingAndSetAngle(angle) {
@@ -1241,16 +1256,36 @@ function updateAutoTracking() {
 }
 
 function satelliteAtPoint(pointer) {
+  let bestSatellite = null;
+  let bestDistanceSquared = Infinity;
+
   for (const satellite of state.satellites) {
     if (satellite.destroyed) {
       continue;
     }
-    const hitRadius = satellite.radius + 8;
-    if (distanceSquared(pointer, satellite) <= hitRadius * hitRadius) {
-      return satellite;
+
+    const touchPadding = 18;
+    const wingReach = satellite.radius + 3 + satellite.radius * 0.92 + touchPadding;
+    const visualReach = Math.max(satellite.radius + 10 + touchPadding, wingReach + 10);
+    const dx = Math.abs(pointer.x - satellite.x);
+    const dy = Math.abs(pointer.y - satellite.y);
+    const radialDistanceSquared = distanceSquared(pointer, satellite);
+
+    if (radialDistanceSquared <= visualReach * visualReach && radialDistanceSquared < bestDistanceSquared) {
+      bestSatellite = satellite;
+      bestDistanceSquared = radialDistanceSquared;
+      continue;
+    }
+
+    if (dx <= wingReach && dy <= satellite.radius + 8 + touchPadding) {
+      if (radialDistanceSquared < bestDistanceSquared) {
+        bestSatellite = satellite;
+        bestDistanceSquared = radialDistanceSquared;
+      }
     }
   }
-  return null;
+
+  return bestSatellite;
 }
 
 function refreshPrediction() {
@@ -1309,10 +1344,12 @@ function syncHud() {
   const level = currentLevel();
   levelValue.textContent = level.name;
   hudLevelValue.textContent = level.name;
-  mobileLevelValue.textContent = level.name;
+  if (mobileLevelValue) mobileLevelValue.textContent = level.name;
+  if (mobileLandscapeLevelValue) mobileLandscapeLevelValue.textContent = String(currentLevelIndex + 1);
   objectiveValue.textContent = level.objective;
   rocketsValue.textContent = String(state.rocketsRemaining);
-  mobileRocketsValue.textContent = String(state.rocketsRemaining);
+  if (mobileRocketsValue) mobileRocketsValue.textContent = String(state.rocketsRemaining);
+  if (mobileLandscapeRocketsValue) mobileLandscapeRocketsValue.textContent = String(state.rocketsRemaining);
   destroyedValue.textContent = String(state.destroyedCount);
   chainsValue.textContent = String(state.totalChains);
   scoreValue.textContent = String(state.score);
@@ -1330,29 +1367,31 @@ function syncHud() {
           ? "Missile Live"
           : "Tracking";
   statusValue.textContent = statusText;
-  mobileStatusValue.textContent = statusText;
 
   angleValue.textContent = `${angleInput.value}\u00b0`;
-  mobileAngleInput.value = angleInput.value;
-  mobileAngleValue.textContent = `${angleInput.value}\u00b0`;
+  if (mobileAngleValue) mobileAngleValue.textContent = `${angleInput.value}\u00b0`;
   simulationSpeedValue.textContent = `${Number(simulationSpeedInput.value).toFixed(2)}\u00d7`;
   const pauseText = state.paused ? "Resume Orbit" : "Pause Orbit";
   pauseButton.textContent = pauseText;
-  mobilePauseButton.textContent = pauseText;
+  if (mobilePauseButton) mobilePauseButton.textContent = state.paused ? "▶️" : "⏸";
   debrisModeButton.textContent =
     debrisMode === DEBRIS_MODES.classic
       ? "Debris Mode: Classic"
       : "Debris Mode: Ordered";
   const pauseDisabled = state.runEnded || state.rockets.length > 0;
   pauseButton.disabled = pauseDisabled;
-  mobilePauseButton.disabled = pauseDisabled;
+  if (mobilePauseButton) mobilePauseButton.disabled = pauseDisabled;
   const fireDisabled =
     state.runEnded ||
     state.rocketsRemaining <= 0 ||
     state.rockets.length > 0 ||
     state.launchCooldown > 0;
   fireButton.disabled = fireDisabled;
-  mobileFireButton.disabled = fireDisabled;
+  if (mobileFireButton) mobileFireButton.disabled = fireDisabled;
+  if (mobileResetButton) mobileResetButton.disabled = false;
+  const angleButtonsDisabled = state.runEnded || state.rockets.length > 0 || state.launchCooldown > 0;
+  if (mobileAngleDecreaseButton) mobileAngleDecreaseButton.disabled = angleButtonsDisabled;
+  if (mobileAngleIncreaseButton) mobileAngleIncreaseButton.disabled = angleButtonsDisabled;
   stopTrackingButton.disabled = !trackedSatellite();
   nextLevelButton.disabled = currentLevelIndex === LEVELS.length - 1;
 }
@@ -1630,11 +1669,11 @@ function trackSatelliteAtPoint(pointer) {
   return true;
 }
 
-function drawYieldPips(satellite) {
+function drawYieldPips(satellite, scale = 1) {
   const yieldCount = satellite.debrisYield;
   if (yieldCount === 0) {
     ctx.strokeStyle = "rgba(255, 210, 100, 0.70)";
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2 * Math.max(1, scale * 0.9);
     ctx.beginPath();
     ctx.moveTo(-satellite.radius + 2, satellite.radius - 2);
     ctx.lineTo(satellite.radius - 2, -satellite.radius + 2);
@@ -1642,8 +1681,8 @@ function drawYieldPips(satellite) {
     return;
   }
 
-  const pipRadius = yieldCount >= 5 ? 1.7 : 1.5;
-  const spacing = 4.6;
+  const pipRadius = (yieldCount >= 5 ? 1.7 : 1.5) * Math.max(1, scale * 0.95);
+  const spacing = 4.6 * Math.max(1, scale * 0.92);
   const columns = yieldCount >= 5 ? 3 : Math.min(3, yieldCount);
   const rows = yieldCount >= 5 ? 2 : yieldCount > 1 ? Math.ceil(yieldCount / 2) : 1;
   const startX = -((columns - 1) * spacing) / 2;
@@ -1660,6 +1699,8 @@ function drawYieldPips(satellite) {
 }
 
 function drawSatellites() {
+  const scale = satelliteVisualScale();
+
   for (const satellite of state.satellites) {
     if (satellite.destroyed) {
       continue;
@@ -1667,8 +1708,9 @@ function drawSatellites() {
     const isTracked = satellite.id === state.trackedSatelliteId;
     ctx.save();
     ctx.translate(satellite.x, satellite.y);
+    ctx.scale(scale, scale);
     ctx.strokeStyle = satellite.color;
-    ctx.lineWidth = isTracked ? 3.8 : satellite.yieldBand === "large" ? 2.8 : 2.2;
+    ctx.lineWidth = (isTracked ? 3.8 : satellite.yieldBand === "large" ? 2.8 : 2.2) * Math.max(1, scale * 0.92);
     ctx.fillStyle = satellite.debrisYield === 0 ? "rgba(18, 12, 0, 0.92)" : "rgba(255, 240, 195, 0.94)";
 
     ctx.beginPath();
@@ -1679,13 +1721,13 @@ function drawSatellites() {
     if (isTracked) {
       // Amber targeting ring
       ctx.strokeStyle = "rgba(232, 160, 0, 0.90)";
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2 * Math.max(1, scale * 0.9);
       ctx.beginPath();
       ctx.arc(0, 0, satellite.radius + 7, 0, Math.PI * 2);
       ctx.stroke();
       // Inner glow
       ctx.strokeStyle = "rgba(232, 160, 0, 0.35)";
-      ctx.lineWidth = 6;
+      ctx.lineWidth = 6 * Math.max(1, scale * 0.82);
       ctx.beginPath();
       ctx.arc(0, 0, satellite.radius + 7, 0, Math.PI * 2);
       ctx.stroke();
@@ -1693,18 +1735,19 @@ function drawSatellites() {
 
     const panelWidth = satellite.radius * 0.92;
     const wingOffset = satellite.radius + 3;
+    const wingLineOffset = 1.5;
     ctx.beginPath();
-    ctx.moveTo(-wingOffset - panelWidth, -1.5);
-    ctx.lineTo(-wingOffset, -1.5);
-    ctx.moveTo(wingOffset, -1.5);
-    ctx.lineTo(wingOffset + panelWidth, -1.5);
-    ctx.moveTo(-wingOffset - panelWidth, 1.5);
-    ctx.lineTo(-wingOffset, 1.5);
-    ctx.moveTo(wingOffset, 1.5);
-    ctx.lineTo(wingOffset + panelWidth, 1.5);
+    ctx.moveTo(-wingOffset - panelWidth, -wingLineOffset);
+    ctx.lineTo(-wingOffset, -wingLineOffset);
+    ctx.moveTo(wingOffset, -wingLineOffset);
+    ctx.lineTo(wingOffset + panelWidth, -wingLineOffset);
+    ctx.moveTo(-wingOffset - panelWidth, wingLineOffset);
+    ctx.lineTo(-wingOffset, wingLineOffset);
+    ctx.moveTo(wingOffset, wingLineOffset);
+    ctx.lineTo(wingOffset + panelWidth, wingLineOffset);
     ctx.stroke();
 
-    drawYieldPips(satellite);
+    drawYieldPips(satellite, scale);
     ctx.restore();
   }
 }
@@ -1713,6 +1756,8 @@ function drawPreview() {
   if (!state.preview) {
     return;
   }
+
+  const hidePreviewPanel = isMobileLandscapeView();
 
   // Launch point dot — phosphor green
   ctx.save();
@@ -1800,37 +1845,39 @@ function drawPreview() {
     ctx.restore();
   }
 
-  // Targeting readout panel — amber terminal
-  ctx.save();
-  const panelX = CONFIG.width - 312;
-  const panelY = 14;
-  const panelW = 286;
-  const panelH = 126;
-  ctx.fillStyle = "rgba(10, 7, 0, 0.92)";
-  ctx.fillRect(panelX, panelY, panelW, panelH);
-  // Top accent bar
-  ctx.fillStyle = "rgba(232, 160, 0, 0.55)";
-  ctx.fillRect(panelX, panelY, panelW, 2);
-  // Border
-  ctx.strokeStyle = "rgba(232, 160, 0, 0.28)";
-  ctx.lineWidth = 1;
-  ctx.strokeRect(panelX, panelY, panelW, panelH);
-  // Left accent bar
-  ctx.fillStyle = "rgba(232, 160, 0, 0.40)";
-  ctx.fillRect(panelX, panelY, 2, panelH);
+  if (!hidePreviewPanel) {
+    // Targeting readout panel — amber terminal
+    ctx.save();
+    const panelX = CONFIG.width - 312;
+    const panelY = 14;
+    const panelW = 286;
+    const panelH = 126;
+    ctx.fillStyle = "rgba(10, 7, 0, 0.92)";
+    ctx.fillRect(panelX, panelY, panelW, panelH);
+    // Top accent bar
+    ctx.fillStyle = "rgba(232, 160, 0, 0.55)";
+    ctx.fillRect(panelX, panelY, panelW, 2);
+    // Border
+    ctx.strokeStyle = "rgba(232, 160, 0, 0.28)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(panelX, panelY, panelW, panelH);
+    // Left accent bar
+    ctx.fillStyle = "rgba(232, 160, 0, 0.40)";
+    ctx.fillRect(panelX, panelY, 2, panelH);
 
-  ctx.fillStyle = "#c09030";
-  ctx.font = "13px 'Share Tech Mono', monospace";
-  ctx.textAlign = "left";
-  ctx.fillText(`DIRECT HIT      ${state.preview.directHits}`, panelX + 16, panelY + 28);
-  ctx.fillText(`DEBRIS CHAIN    ${state.preview.chainHits}`, panelX + 16, panelY + 52);
-  ctx.fillStyle = "#e8a000";
-  ctx.font = "bold 13px 'Share Tech Mono', monospace";
-  ctx.fillText(`TOTAL KILLS     ${state.preview.totalHits}`, panelX + 16, panelY + 76);
-  ctx.fillStyle = "rgba(90, 64, 16, 0.85)";
-  ctx.font = "11px 'Share Tech Mono', monospace";
-  ctx.fillText("size=band  pips/slash=debris count", panelX + 16, panelY + 108);
-  ctx.restore();
+    ctx.fillStyle = "#c09030";
+    ctx.font = "13px 'Share Tech Mono', monospace";
+    ctx.textAlign = "left";
+    ctx.fillText(`DIRECT HIT      ${state.preview.directHits}`, panelX + 16, panelY + 28);
+    ctx.fillText(`DEBRIS CHAIN    ${state.preview.chainHits}`, panelX + 16, panelY + 52);
+    ctx.fillStyle = "#e8a000";
+    ctx.font = "bold 13px 'Share Tech Mono', monospace";
+    ctx.fillText(`TOTAL KILLS     ${state.preview.totalHits}`, panelX + 16, panelY + 76);
+    ctx.fillStyle = "rgba(90, 64, 16, 0.85)";
+    ctx.font = "11px 'Share Tech Mono', monospace";
+    ctx.fillText("size=band  pips/slash=debris count", panelX + 16, panelY + 108);
+    ctx.restore();
+  }
 }
 
 function drawActiveObjects() {
@@ -1967,13 +2014,6 @@ angleInput.addEventListener("input", () => {
   syncHud();
 });
 
-mobileAngleInput.addEventListener("input", () => {
-  clearTrackedSatellite();
-  setAngleValue(Number(mobileAngleInput.value));
-  refreshPrediction();
-  syncHud();
-});
-
 simulationSpeedInput.addEventListener("input", () => {
   syncHud();
 });
@@ -2004,7 +2044,13 @@ canvas.addEventListener("pointerdown", (event) => {
   };
   if (event.pointerType !== "mouse") {
     clearHoveredSatellite();
-    canvas.setPointerCapture(event.pointerId);
+    if (typeof canvas.setPointerCapture === "function") {
+      try {
+        canvas.setPointerCapture(event.pointerId);
+      } catch (_error) {
+        // iOS Safari can be inconsistent here; tap-to-select should still work without capture.
+      }
+    }
   }
 });
 
@@ -2025,7 +2071,7 @@ canvas.addEventListener("pointerup", (event) => {
     activeCanvasPointer.moved ||
     distanceSquared(activeCanvasPointer.startPoint, pointer) > POINTER_TAP_SLOP * POINTER_TAP_SLOP;
   activeCanvasPointer = null;
-  if (canvas.hasPointerCapture(event.pointerId)) {
+  if (typeof canvas.hasPointerCapture === "function" && canvas.hasPointerCapture(event.pointerId)) {
     canvas.releasePointerCapture(event.pointerId);
   }
   if (!moved) {
@@ -2037,7 +2083,7 @@ canvas.addEventListener("pointercancel", (event) => {
   if (activeCanvasPointer && activeCanvasPointer.id === event.pointerId) {
     activeCanvasPointer = null;
   }
-  if (canvas.hasPointerCapture(event.pointerId)) {
+  if (typeof canvas.hasPointerCapture === "function" && canvas.hasPointerCapture(event.pointerId)) {
     canvas.releasePointerCapture(event.pointerId);
   }
 });
@@ -2072,8 +2118,53 @@ window.addEventListener("keydown", (event) => {
 
 pauseButton.addEventListener("click", togglePause);
 fireButton.addEventListener("click", fireRocket);
-mobilePauseButton.addEventListener("click", togglePause);
-mobileFireButton.addEventListener("click", fireRocket);
+
+function bindMobileHudButton(button, handler) {
+  if (!button) {
+    return;
+  }
+
+  const wrappedHandler = (event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    handler();
+  };
+
+  button.addEventListener("click", wrappedHandler);
+  button.addEventListener("touchstart", wrappedHandler, { passive: false });
+  button.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+  });
+}
+
+bindMobileHudButton(mobileAngleDecreaseButton, () => {
+  clearTrackingAndSetAngle(Number(angleInput.value) - 1);
+  refreshPrediction();
+  syncHud();
+});
+
+bindMobileHudButton(mobileAngleIncreaseButton, () => {
+  clearTrackingAndSetAngle(Number(angleInput.value) + 1);
+  refreshPrediction();
+  syncHud();
+});
+
+bindMobileHudButton(mobilePauseButton, () => {
+  togglePause();
+});
+
+bindMobileHudButton(mobileFireButton, () => {
+  fireRocket();
+  syncHud();
+});
+
+bindMobileHudButton(mobileResetButton, () => {
+  restartRun();
+});
+
 stopTrackingButton.addEventListener("click", () => {
   clearTrackedSatellite();
   refreshPrediction();

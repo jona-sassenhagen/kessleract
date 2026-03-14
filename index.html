@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <title>Kessleract</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -85,30 +85,33 @@
         <div class="game-viewport">
           <div class="mobile-top-strip" aria-hidden="true">
             <div class="mobile-readout">
-              <span class="label">Sector</span>
+              <span class="label">Level</span>
               <strong id="mobile-level-value">Level 1: Tutorial Orbit</strong>
-            </div>
-            <div class="mobile-readout">
-              <span class="label">Status</span>
-              <strong id="mobile-status-value">Tracking</strong>
             </div>
             <div class="mobile-readout">
               <span class="label">Rockets</span>
               <strong id="mobile-rockets-value">4</strong>
             </div>
           </div>
-          <label class="mobile-angle-control" for="mobile-angle">
-            <span class="mobile-angle-label">Aim</span>
-            <input id="mobile-angle" type="range" min="0" max="88" value="46" aria-label="Mobile launch angle">
-            <span id="mobile-angle-value" class="mobile-angle-value">46°</span>
-          </label>
+          <div class="mobile-landscape-hud" aria-label="Mobile landscape controls">
+            <div class="mobile-landscape-topbar">
+              <div class="mobile-landscape-inline mobile-landscape-level">Lvl: <strong id="mobile-landscape-level-value">1</strong></div>
+              <div class="mobile-landscape-inline mobile-landscape-rockets">🚀 <strong id="mobile-landscape-rockets-value">4</strong></div>
+            </div>
+            <div class="mobile-landscape-controls">
+              <div class="mobile-angle-stepper" aria-label="Mobile angle controls">
+                <button id="mobile-angle-decrease" type="button" class="mobile-hud-action secondary" aria-label="Decrease angle">−</button>
+                <span id="mobile-angle-value" class="mobile-angle-value">46°</span>
+                <button id="mobile-angle-increase" type="button" class="mobile-hud-action secondary" aria-label="Increase angle">+</button>
+              </div>
+              <div class="mobile-landscape-actions">
+                <button id="mobile-reset-button" type="button" class="mobile-hud-action secondary" aria-label="Reset">↺</button>
+                <button id="mobile-pause-button" type="button" class="mobile-hud-action secondary" aria-label="Pause">⏸</button>
+                <button id="mobile-fire-button" type="button" class="mobile-hud-action" aria-label="Fire">🔥</button>
+              </div>
+            </div>
+          </div>
           <canvas id="game" width="1280" height="800" aria-label="Satellite interception game"></canvas>
-          <button id="mobile-pause-button" type="button" class="mobile-corner-button mobile-pause-button secondary">
-            Pause Orbit
-          </button>
-          <button id="mobile-fire-button" type="button" class="mobile-corner-button mobile-fire-button">
-            Fire Rocket
-          </button>
         </div>
       </section>
     </main>

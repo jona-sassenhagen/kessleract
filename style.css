@@ -412,7 +412,8 @@ canvas {
 /* ── Mobile overlay UI (hidden by default) ────────────────── */
 .mobile-top-strip,
 .mobile-angle-control,
-.mobile-corner-button {
+.mobile-corner-button,
+.mobile-landscape-hud {
   display: none;
 }
 
@@ -465,7 +466,7 @@ canvas {
   canvas { max-height: 62svh; }
 }
 
-@media (max-width: 720px) and (orientation: portrait) {
+@media ((max-width: 720px) and (orientation: portrait)), ((pointer: coarse) and (orientation: portrait)) {
   .orientation-hint { display: block; }
 
   .hud { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -483,7 +484,7 @@ canvas {
 }
 
 /* ── Mobile landscape: full-bleed immersive mode ──────────── */
-@media (max-width: 960px) and (orientation: landscape) {
+@media ((max-width: 960px) and (orientation: landscape)), ((pointer: coarse) and (orientation: landscape)) {
   body { overflow: hidden; }
 
   .layout {
@@ -509,9 +510,11 @@ canvas {
   .hud-panel::after { display: none; }
 
   .orientation-hint,
-  .hud { display: none; }
+  .hud,
+  .mobile-top-strip { display: none !important; }
 
   .game-viewport {
+    position: relative;
     height: 100vh;
     height: 100svh;
     width: 100vw;
@@ -521,84 +524,105 @@ canvas {
       #030100;
   }
 
-  /* ── mobile top strip ── */
-  .mobile-top-strip {
+  .mobile-landscape-hud {
     position: absolute;
-    top: max(10px, env(safe-area-inset-top));
-    left: 84px;
-    right: 84px;
-    z-index: 2;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
+    inset: 0;
+    z-index: 3;
+    display: block;
     pointer-events: none;
   }
 
-  .mobile-readout {
-    padding: 8px 10px;
-    text-align: center;
-    background: rgba(4, 3, 0, 0.82);
-    border: 1px solid rgba(232, 160, 0, 0.20);
-    border-top: 2px solid rgba(232, 160, 0, 0.50);
-  }
-
-  .mobile-readout .label {
-    font-size: 0.58rem;
-    letter-spacing: 0.18em;
-  }
-
-  .mobile-readout strong {
-    display: block;
-    margin-top: 4px;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.88rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: var(--accent);
-    text-shadow: var(--glow-sm);
-  }
-
-  /* ── mobile angle control ── */
-  .mobile-angle-control {
+  .mobile-landscape-topbar {
     position: absolute;
-    top: 50%;
+    top: max(10px, env(safe-area-inset-top));
     left: max(10px, env(safe-area-inset-left));
-    z-index: 3;
+    right: max(10px, env(safe-area-inset-right));
     display: flex;
-    flex-direction: column;
+    gap: 12px;
     align-items: center;
-    gap: 10px;
-    transform: translateY(-50%);
-    padding: 14px 10px;
-    width: 62px;
-    background: rgba(4, 3, 0, 0.80);
-    border: 1px solid rgba(232, 160, 0, 0.22);
-    border-left: 2px solid rgba(232, 160, 0, 0.45);
+    justify-content: flex-start;
+    pointer-events: none;
   }
 
-  .mobile-angle-label,
-  .mobile-angle-value {
+  .mobile-landscape-inline {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    color: var(--accent);
     font-family: 'Share Tech Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.10em;
-    text-transform: uppercase;
-    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .mobile-landscape-inline strong {
+    color: var(--accent);
+    font-size: 0.92rem;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .mobile-landscape-controls {
+    position: absolute;
+    left: max(6px, env(safe-area-inset-left));
+    right: max(6px, env(safe-area-inset-right));
+    bottom: calc(env(safe-area-inset-bottom) + 4px);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 6px;
+    pointer-events: none;
+  }
+
+  .mobile-angle-stepper,
+  .mobile-landscape-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    pointer-events: auto;
   }
 
   .mobile-angle-value {
+    min-width: 2.8em;
+    text-align: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem;
     color: var(--accent);
     text-shadow: var(--glow-sm);
   }
 
-  .mobile-angle-control input[type="range"] {
-    width: 168px;
-    margin: 52px 0;
-    transform: rotate(-90deg);
-    transform-origin: center;
+  .mobile-hud-action {
+    min-width: 0;
+    width: 52px;
+    height: 52px;
+    min-height: 52px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    line-height: 1;
+    letter-spacing: 0;
+    text-transform: none;
+    pointer-events: auto;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.30), var(--glow-sm), inset 0 1px 0 rgba(255, 215, 70, 0.30);
   }
 
-  /* ── canvas fills viewport ── */
+  .mobile-hud-action.secondary {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.24);
+  }
+
   canvas {
     position: absolute;
     inset: 0;
@@ -609,29 +633,104 @@ canvas {
     box-shadow: none;
     object-fit: contain;
   }
+}
 
-  /* ── mobile corner buttons ── */
-  .mobile-corner-button {
-    position: absolute;
-    bottom: max(12px, env(safe-area-inset-bottom));
-    z-index: 3;
+
+@media (max-width: 1100px), (pointer: coarse) {
+  .hud {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .hud-secondary,
+  .hud .hud-primary:nth-of-type(5),
+  .hud-status {
+    display: none;
+  }
+
+  .mobile-top-strip {
+    display: flex;
+    gap: 6px;
+    padding: 6px 8px;
+  }
+
+  .mobile-readout {
+    min-width: 0;
+    flex: 1 1 0;
+  }
+
+  .mobile-readout .label,
+  .mobile-hud-chip .label,
+  .mobile-angle-label {
+    font-size: 0.52rem;
+    letter-spacing: 0.14em;
+  }
+
+  .mobile-readout strong,
+  .mobile-hud-chip strong,
+  .mobile-angle-value {
+    font-size: 0.76rem;
+    line-height: 1.1;
+  }
+
+  .mobile-landscape-hud {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+
+  .mobile-landscape-topbar {
+    gap: 6px;
+  }
+
+  .mobile-hud-chip {
+    padding: 5px 7px;
+  }
+
+  .mobile-landscape-actions {
+    display: grid;
+    grid-auto-flow: column;
+    gap: 6px;
+  }
+}
+
+@media ((max-width: 960px) and (orientation: landscape)), ((pointer: coarse) and (orientation: landscape)) {
+  .hud-panel > .hud {
+    display: none !important;
+    visibility: hidden;
+  }
+
+  .mobile-landscape-controls {
+    left: max(6px, env(safe-area-inset-left));
+    right: max(6px, env(safe-area-inset-right));
+    bottom: calc(env(safe-area-inset-bottom) + 4px);
+    display: flex;
+    grid-template-columns: none;
+    gap: 6px;
+    align-items: flex-end;
+  }
+
+  .mobile-angle-stepper,
+  .mobile-landscape-actions {
+    gap: 4px;
+  }
+
+  .mobile-angle-value {
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .mobile-landscape-actions {
     display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 148px;
-    min-height: 64px;
-    padding: 16px 22px;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.78rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    grid-auto-flow: unset;
   }
 
-  .mobile-pause-button {
-    left: max(12px, env(safe-area-inset-left));
-  }
-
-  .mobile-fire-button {
-    right: max(12px, env(safe-area-inset-right));
+  .mobile-hud-action {
+    width: 52px;
+    height: 52px;
+    min-width: 0;
+    min-height: 52px;
+    padding: 0;
+    font-size: 1.6rem;
+    letter-spacing: 0;
   }
 }

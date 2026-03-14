@@ -30,9 +30,16 @@ const destroyedValue = document.getElementById("destroyed-value");
 const chainsValue = document.getElementById("chains-value");
 const scoreValue = document.getElementById("score-value");
 const statusValue = document.getElementById("status-value");
+const rootStyle = document.documentElement.style;
+const mobileLandscapeTopbar = document.querySelector(".mobile-landscape-topbar");
+const mobileLandscapeControls = document.querySelector(".mobile-landscape-controls");
 
 const POINTER_TAP_SLOP = 18;
 const MOBILE_VIEW_MAX_WIDTH = 960;
+const LANDSCAPE_SCENE_OVERFLOW_Y = 72;
+const LANDSCAPE_SCENE_WIDTH_RATIO = 0.95;
+const LANDSCAPE_VISIBLE_MARGIN = 8;
+const LANDSCAPE_LAUNCH_MARGIN = 18;
 let activeCanvasPointer = null;
 
 function isMobileView() {
@@ -45,6 +52,14 @@ function isMobileLandscapeView() {
 
 function satelliteVisualScale() {
   return isMobileView() ? 1.35 : 1;
+}
+
+function viewportSize() {
+  const viewport = window.visualViewport;
+  return {
+    width: Math.round(viewport ? viewport.width : window.innerWidth),
+    height: Math.round(viewport ? viewport.height : window.innerHeight),
+  };
 }
 
 canvas.width = 1280;
@@ -542,6 +557,75 @@ function normalizeLevelWells(levelWells) {
   }
 
   return { physicalWells, visualWells };
+}
+
+function rotatedEllipseExtents(rx, ry, rotation = 0) {
+  const sin = Math.sin(rotation);
+  const cos = Math.cos(rotation);
+  return {
+    x: Math.hypot(rx * cos, ry * sin),
+    y: Math.hypot(rx * sin, ry * cos),
+  };
+}
+
+function landscapeSceneBounds(level = currentLevel()) {
+  const { physicalWells, visualWells } = normalizeLevelWells(level.wells);
+  let minX = CONFIG.launchX - 24;
+  let maxX = CONFIG.launchX + 28;
+  let minY = CONFIG.launchY - 30;
+  let maxY = CONFIG.launchY + 14;
+
+  for (const well of visualWells) {
+    if (well.kind === "composite") {
+      const ringRadius = well.visualRadius || 0;
+      minX = Math.min(minX, well.x - ringRadius - 12);
+      maxX = Math.max(maxX, well.x + ringRadius + 12);
+      minY = Math.min(minY, well.y - ringRadius * 0.82 - 12);
+      maxY = Math.max(maxY, well.y + ringRadius * 0.82 + 12);
+      for (const lobe of well.lobes) {
+        minX = Math.min(minX, lobe.x - lobe.radius - 12);
+        maxX = Math.max(maxX, lobe.x + lobe.radius + 12);
+        minY = Math.min(minY, lobe.y - lobe.radius - 12);
+        maxY = Math.max(maxY, lobe.y + lobe.radius + 12);
+      }
+      continue;
+    }
+
+    minX = Math.min(minX, well.x - well.radius - 12);
+    maxX = Math.max(maxX, well.x + well.radius + 12);
+    minY = Math.min(minY, well.y - well.radius - 12);
+    maxY = Math.max(maxY, well.y + well.radius + 12);
+  }
+
+  for (const spec of level.satellites) {
+    const radius = yieldRadius(spec.debrisYield) * satelliteVisualScale() + 16;
+    if (spec.motionMode === "ballistic") {
+      minX = Math.min(minX, spec.x - radius);
+      maxX = Math.max(maxX, spec.x + radius);
+      minY = Math.min(minY, spec.y - radius);
+      maxY = Math.max(maxY, spec.y + radius);
+      continue;
+    }
+
+    const anchor = physicalWells.find((well) => well.id === spec.wellId) || physicalWells[0];
+    if (!anchor) {
+      continue;
+    }
+
+    const extents = rotatedEllipseExtents(spec.rx, spec.ry, spec.rotation || 0);
+    minX = Math.min(minX, anchor.x - extents.x - radius);
+    maxX = Math.max(maxX, anchor.x + extents.x + radius);
+    minY = Math.min(minY, anchor.y - extents.y - radius);
+    maxY = Math.max(maxY, anchor.y + extents.y + radius);
+  }
+
+  return {
+    minX,
+    maxX,
+    minY,
+    maxY,
+    primaryWell: visualWells[0] || physicalWells[0] || { x: CONFIG.width * 0.5, y: CONFIG.height * 0.5 },
+  };
 }
 
 function recordTrail(entity, maxPoints) {
@@ -2018,6 +2102,115 @@ simulationSpeedInput.addEventListener("input", () => {
   syncHud();
 });
 
+let viewportRefreshRaf = 0;
+let viewportRefreshTimeout = 0;
+let viewportRefreshSettledTimeout = 0;
+
+function updateViewportCssVars() {
+  const { width: viewportWidth, height: viewportHeight } = viewportSize();
+  rootStyle.setProperty("--app-height", `${viewportHeight}px`);
+  rootStyle.setProperty("--app-width", `${viewportWidth}px`);
+
+  if (!isMobileLandscapeView()) {
+    rootStyle.setProperty("--mobile-landscape-scene-offset-x", "0px");
+    rootStyle.setProperty("--mobile-landscape-scene-offset-y", "0px");
+    rootStyle.setProperty("--mobile-hud-bottom", "2px");
+    canvas.style.width = "";
+    canvas.style.height = "";
+    return;
+  }
+
+  const topbarRect = mobileLandscapeTopbar ? mobileLandscapeTopbar.getBoundingClientRect() : null;
+  const controlsRect = mobileLandscapeControls ? mobileLandscapeControls.getBoundingClientRect() : null;
+  const controlsBottomInset = Math.max(
+    2,
+    Math.round(controlsRect ? viewportHeight - controlsRect.bottom : 2),
+  );
+  const topMargin = Math.max(
+    LANDSCAPE_VISIBLE_MARGIN,
+    Math.round(topbarRect ? topbarRect.bottom + 6 : LANDSCAPE_VISIBLE_MARGIN),
+  );
+  const bottomMargin = Math.max(LANDSCAPE_LAUNCH_MARGIN, controlsBottomInset + 8);
+  rootStyle.setProperty("--mobile-hud-bottom", `${controlsBottomInset}px`);
+
+  const bounds = landscapeSceneBounds();
+  const sceneScale = Math.max(0.1, Math.min(
+    (viewportHeight + LANDSCAPE_SCENE_OVERFLOW_Y) / CONFIG.height,
+    (viewportWidth * LANDSCAPE_SCENE_WIDTH_RATIO) / CONFIG.width,
+    (viewportHeight - bottomMargin - topMargin) / Math.max(1, CONFIG.launchY - bounds.minY),
+  ));
+  const sceneWidth = Math.round(CONFIG.width * sceneScale);
+  const sceneHeight = Math.round(CONFIG.height * sceneScale);
+  canvas.style.width = `${sceneWidth}px`;
+  canvas.style.height = `${sceneHeight}px`;
+
+  const centeredLeft = (viewportWidth - sceneWidth) / 2;
+  const centeredTop = (viewportHeight - sceneHeight) / 2;
+  const desiredOffsetX = viewportWidth / 2 - (centeredLeft + bounds.primaryWell.x * sceneScale);
+  const minOffsetX = -LANDSCAPE_VISIBLE_MARGIN - (centeredLeft + bounds.minX * sceneScale);
+  const maxOffsetX = viewportWidth + LANDSCAPE_VISIBLE_MARGIN - (centeredLeft + bounds.maxX * sceneScale);
+  const sceneOffsetX = Math.min(
+    maxOffsetX,
+    Math.max(minOffsetX, Math.min(0, desiredOffsetX)),
+  );
+
+  const desiredOffsetY = viewportHeight - bottomMargin - (centeredTop + CONFIG.launchY * sceneScale);
+  const minOffsetY = topMargin - (centeredTop + bounds.minY * sceneScale);
+  const maxOffsetY = viewportHeight - LANDSCAPE_VISIBLE_MARGIN - (centeredTop + bounds.maxY * sceneScale);
+  const sceneOffsetY = Math.min(maxOffsetY, Math.max(minOffsetY, desiredOffsetY));
+
+  rootStyle.setProperty("--mobile-landscape-scene-offset-x", `${Math.round(sceneOffsetX)}px`);
+  rootStyle.setProperty("--mobile-landscape-scene-offset-y", `${Math.round(sceneOffsetY)}px`);
+}
+
+function refreshViewportLayout() {
+  updateViewportCssVars();
+  refreshPrediction();
+  syncHud();
+  render();
+}
+
+function scheduleViewportRefresh() {
+  if (viewportRefreshRaf) {
+    cancelAnimationFrame(viewportRefreshRaf);
+  }
+  if (viewportRefreshTimeout) {
+    clearTimeout(viewportRefreshTimeout);
+  }
+  if (viewportRefreshSettledTimeout) {
+    clearTimeout(viewportRefreshSettledTimeout);
+  }
+
+  let framesRemaining = 8;
+  const runRefresh = () => {
+    refreshViewportLayout();
+    framesRemaining -= 1;
+    if (framesRemaining > 0) {
+      viewportRefreshRaf = requestAnimationFrame(runRefresh);
+    } else {
+      viewportRefreshRaf = 0;
+    }
+  };
+
+  viewportRefreshRaf = requestAnimationFrame(runRefresh);
+  viewportRefreshTimeout = window.setTimeout(() => {
+    refreshViewportLayout();
+    viewportRefreshTimeout = 0;
+  }, 450);
+  viewportRefreshSettledTimeout = window.setTimeout(() => {
+    refreshViewportLayout();
+    viewportRefreshSettledTimeout = 0;
+  }, 900);
+}
+
+window.addEventListener("resize", scheduleViewportRefresh, { passive: true });
+window.addEventListener("orientationchange", scheduleViewportRefresh, { passive: true });
+window.addEventListener("pageshow", scheduleViewportRefresh, { passive: true });
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", scheduleViewportRefresh, { passive: true });
+  window.visualViewport.addEventListener("scroll", scheduleViewportRefresh, { passive: true });
+}
+
 canvas.addEventListener("pointermove", (event) => {
   const pointer = canvasPointFromEvent(event);
   if (event.pointerType === "mouse") {
@@ -2181,6 +2374,6 @@ debrisModeButton.addEventListener("click", () => {
   syncHud();
 });
 
-refreshPrediction();
-syncHud();
+refreshViewportLayout();
+scheduleViewportRefresh();
 requestAnimationFrame(frame);

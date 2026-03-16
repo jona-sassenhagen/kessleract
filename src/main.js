@@ -1,4 +1,5 @@
 import { dom } from "./ui/dom.js";
+import { soundtrack } from "./audio.js";
 import { gameStore } from "./core/store.js";
 import {
   advanceLevel as advanceLevelState,
@@ -81,9 +82,25 @@ function fireRocket() {
   syncHud();
 }
 
+function startGame() {
+  if (dom.startScreen.hidden) {
+    return;
+  }
+  dom.startScreen.hidden = true;
+  soundtrack.ensurePlayback();
+  scheduleViewportRefresh();
+  syncHud();
+  render();
+}
+
 function frame(now) {
   const elapsed = Math.min(0.033, (now - gameStore.lastFrame) / 1000);
   gameStore.lastFrame = now;
+  if (!dom.startScreen.hidden) {
+    render();
+    requestAnimationFrame(frame);
+    return;
+  }
   updateGame(elapsed * Number(dom.simulationSpeedInput.value));
   updateAutoTracking(setAngleValue);
   refreshPrediction();
@@ -93,6 +110,16 @@ function frame(now) {
 }
 
 initializeState();
+soundtrack.init();
+soundtrack.onTrackChange = () => {
+  syncHud();
+};
+soundtrack.onMuteChange = () => {
+  syncHud();
+};
+soundtrack.onReadyChange = () => {
+  syncHud();
+};
 setAngleValue(Number(dom.angleInput.value));
 refreshPrediction();
 syncHud();
@@ -108,6 +135,7 @@ bindInputs({
   restartRun,
   scheduleViewportRefresh,
   setAngleValue,
+  startGame,
   syncHud,
   togglePause,
   trackSatelliteAtPoint,

@@ -10,6 +10,35 @@
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
+    <div id="start-screen" class="start-screen" aria-label="Start screen">
+      <div class="start-screen-panel">
+        <p class="eyebrow">Orbital Chain-Reaction Puzzle</p>
+        <h1>Kessleract</h1>
+        <p class="start-screen-lede">
+          Trigger a cascading debris storm and clear every sector with limited anti-satellite missiles.
+        </p>
+
+        <button id="start-button" type="button" class="start-button" aria-label="Start game">Start</button>
+
+        <div class="start-briefing">
+          <span class="label">Mission Briefing</span>
+          <ul class="start-instructions">
+            <li>Destroy all satellites to proceed.</li>
+            <li>A destroyed satellite creates debris that destroys any satellite it touches.</li>
+            <li>You have limited missiles.</li>
+            <li>Click or tap to auto-track, or adjust angle manually.</li>
+            <li>Tap Fire or press Enter to shoot.</li>
+            <li>Press Space or hit Pause to pause.</li>
+          </ul>
+        </div>
+
+        <div class="start-links" aria-label="Credits and links">
+          <a href="https://github.com/jona-sassenhagen/kessleract" target="_blank" rel="noreferrer">GitHub</a>
+          <a href="https://suno.com/@der_luke" target="_blank" rel="noreferrer">Music by Der Luke</a>
+        </div>
+      </div>
+    </div>
+
     <main class="layout">
       <section class="panel intro">
         <p class="eyebrow">Orbital Chain-Reaction Puzzle</p>
@@ -37,8 +66,15 @@
             <button id="pause-button" type="button" class="secondary">Pause Orbit</button>
             <button id="fire-button" type="button">Fire Rocket</button>
             <button id="debris-mode-button" type="button" class="secondary">Debris Mode: Classic</button>
+            <button id="music-toggle-button" type="button" class="secondary">Music: On</button>
+            <button id="music-next-button" type="button" class="secondary">Next Track</button>
             <button id="stop-tracking-button" type="button" class="secondary">Stop Tracking</button>
             <button id="restart-button" type="button" class="secondary">Restart Run</button>
+          </div>
+          <div class="mission-card soundtrack-card">
+            <span class="label">Soundtrack</span>
+            <strong id="music-track-value">Apogee</strong>
+            <p id="music-status-value">Armed. Music begins on your first interaction.</p>
           </div>
           <button id="next-level-button" type="button" class="secondary wide-button">Next Level</button>
         </div>

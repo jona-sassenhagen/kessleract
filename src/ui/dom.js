@@ -7,6 +7,8 @@ function requireElement(id) {
 }
 
 export const dom = {
+  startScreen: requireElement("start-screen"),
+  startButton: requireElement("start-button"),
   canvas: requireElement("game"),
   angleInput: requireElement("angle"),
   angleValue: requireElement("angle-value"),
@@ -20,6 +22,8 @@ export const dom = {
   mobileAngleDecrease: requireElement("mobile-angle-decrease"),
   mobileAngleIncrease: requireElement("mobile-angle-increase"),
   debrisModeButton: requireElement("debris-mode-button"),
+  musicToggleButton: requireElement("music-toggle-button"),
+  musicNextButton: requireElement("music-next-button"),
   stopTrackingButton: requireElement("stop-tracking-button"),
   restartButton: requireElement("restart-button"),
   nextLevelButton: requireElement("next-level-button"),
@@ -36,6 +40,8 @@ export const dom = {
   chainsValue: requireElement("chains-value"),
   scoreValue: requireElement("score-value"),
   statusValue: requireElement("status-value"),
+  musicTrackValue: requireElement("music-track-value"),
+  musicStatusValue: requireElement("music-status-value"),
   rootStyle: document.documentElement.style,
   mobileLandscapeTopbar: document.querySelector(".mobile-landscape-topbar"),
   mobileLandscapeControls: document.querySelector(".mobile-landscape-controls"),

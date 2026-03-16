@@ -29,7 +29,6 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── Base ─────────────────────────────────────────────────── */
 html,
 body {
   min-height: 100vh;
@@ -47,7 +46,6 @@ body {
   background-size: 48px 48px, 48px 48px, 100% 100%, 100% 100%;
 }
 
-/* phosphor scanlines */
 body::after {
   content: '';
   position: fixed;
@@ -63,7 +61,6 @@ body::after {
   z-index: 9999;
 }
 
-/* vignette */
 body::before {
   content: '';
   position: fixed;
@@ -73,7 +70,92 @@ body::before {
   z-index: 9998;
 }
 
-/* ── Layout ───────────────────────────────────────────────── */
+.start-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9997;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(70, 35, 0, 0.36), rgba(3, 2, 0, 0.95) 65%),
+    rgba(2, 1, 0, 0.92);
+}
+
+.start-screen[hidden] {
+  display: none;
+}
+
+.start-screen-panel {
+  width: min(760px, 100%);
+  padding: 30px 28px 26px;
+  text-align: center;
+  background: rgba(9, 7, 0, 0.96);
+  border: 1px solid rgba(232, 160, 0, 0.28);
+  box-shadow:
+    0 0 0 1px rgba(232, 160, 0, 0.05),
+    inset 0 0 28px rgba(232, 160, 0, 0.022),
+    0 24px 64px rgba(0, 0, 0, 0.80);
+}
+
+.start-screen-lede {
+  max-width: 38rem;
+  margin: 0 auto 22px;
+  line-height: 1.6;
+  color: #9a7930;
+}
+
+.start-button {
+  width: 168px;
+  height: 168px;
+  min-width: 168px;
+  min-height: 168px;
+  margin: 8px auto 24px;
+  border-radius: 999px;
+  font-size: 1.15rem;
+  letter-spacing: 0.18em;
+  box-shadow: var(--glow), 0 0 36px rgba(232, 160, 0, 0.28);
+}
+
+.start-briefing {
+  margin: 0 auto;
+  padding: 18px 20px;
+  text-align: left;
+  background: rgba(232, 160, 0, 0.048);
+  border: 1px solid rgba(232, 160, 0, 0.18);
+  border-left: 3px solid var(--accent);
+}
+
+.start-instructions {
+  margin: 12px 0 0 1.2rem;
+  display: grid;
+  gap: 10px;
+  color: #b48a33;
+  line-height: 1.55;
+}
+
+.start-links {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+}
+
+.start-links a {
+  color: var(--accent-2);
+  text-decoration: none;
+  font-family: 'Share Tech Mono', monospace;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid rgba(0, 232, 122, 0.28);
+}
+
+.start-links a:hover {
+  color: #7cffbc;
+  border-bottom-color: #7cffbc;
+}
+
 .layout {
   width: min(1720px, calc(100vw - 24px));
   margin: 12px auto;
@@ -82,7 +164,6 @@ body::before {
   gap: 12px;
 }
 
-/* ── Panels ───────────────────────────────────────────────── */
 .panel {
   background: var(--panel);
   border: 1px solid var(--panel-border);
@@ -95,7 +176,6 @@ body::before {
     0 24px 64px var(--shadow);
 }
 
-/* top-edge amber sweep */
 .panel::before {
   content: '';
   position: absolute;
@@ -105,7 +185,6 @@ body::before {
   z-index: 2;
 }
 
-/* bottom-right corner notch */
 .panel::after {
   content: '';
   position: absolute;
@@ -117,12 +196,10 @@ body::before {
   z-index: 2;
 }
 
-/* ── Intro panel ──────────────────────────────────────────── */
 .intro {
   padding: 22px 20px 20px;
 }
 
-/* ── Typography ───────────────────────────────────────────── */
 .eyebrow {
   display: block;
   font-family: 'Share Tech Mono', monospace;
@@ -160,7 +237,6 @@ h1 {
   font-size: 0.87rem;
 }
 
-/* ── Mission card ─────────────────────────────────────────── */
 .mission-card {
   margin-bottom: 18px;
   padding: 13px 14px;
@@ -185,7 +261,15 @@ h1 {
   font-size: 0.83rem;
 }
 
-/* ── Controls grid ────────────────────────────────────────── */
+.soundtrack-card {
+  margin-top: 12px;
+}
+
+.soundtrack-card strong {
+  color: var(--accent-2);
+  text-shadow: var(--glow-green);
+}
+
 .controls-grid {
   display: grid;
   gap: 12px;
@@ -223,7 +307,6 @@ input[type="range"] {
   cursor: pointer;
 }
 
-/* ── Buttons ──────────────────────────────────────────────── */
 .buttons {
   display: flex;
   gap: 8px;
@@ -284,7 +367,6 @@ button:disabled {
   transform: none;
 }
 
-/* ── Briefing drawer ──────────────────────────────────────── */
 .tips-drawer {
   margin-top: 16px;
   background: rgba(232, 160, 0, 0.022);
@@ -328,7 +410,6 @@ button:disabled {
   font-size: 0.83rem;
 }
 
-/* ── HUD panel ────────────────────────────────────────────── */
 .hud-panel {
   padding: 12px;
 }
@@ -362,7 +443,6 @@ button:disabled {
   position: relative;
 }
 
-/* corner pip on each hud cell */
 .hud > div::after {
   content: '';
   position: absolute;
@@ -393,12 +473,10 @@ button:disabled {
   line-height: 1.35;
 }
 
-/* ── Game viewport ────────────────────────────────────────── */
 .game-viewport {
   position: relative;
 }
 
-/* ── Canvas ───────────────────────────────────────────────── */
 canvas {
   width: 100%;
   height: auto;
@@ -417,17 +495,12 @@ canvas {
   touch-action: manipulation;
 }
 
-/* ── Mobile overlay UI (hidden by default) ────────────────── */
 .mobile-top-strip,
 .mobile-angle-control,
 .mobile-corner-button,
 .mobile-landscape-hud {
   display: none;
 }
-
-/* ═══════════════════════════════════════════════════════════
-   RESPONSIVE
-   ═══════════════════════════════════════════════════════════ */
 
 @media (max-width: 1024px) {
   .layout {
@@ -472,6 +545,27 @@ canvas {
   .tips-drawer { margin-top: 12px; }
 
   canvas { max-height: 62svh; }
+
+  .start-screen {
+    padding: 12px;
+  }
+
+  .start-screen-panel {
+    padding: 20px 16px 18px;
+  }
+
+  .start-button {
+    width: 136px;
+    height: 136px;
+    min-width: 136px;
+    min-height: 136px;
+    margin-bottom: 18px;
+  }
+
+  .start-instructions {
+    gap: 8px;
+    font-size: 0.95rem;
+  }
 }
 
 @media ((max-width: 720px) and (orientation: portrait)), ((pointer: coarse) and (orientation: portrait)) {
@@ -491,7 +585,6 @@ canvas {
   .tips-drawer:not([open]) { margin-bottom: 0; }
 }
 
-/* ── Mobile landscape: full-bleed immersive mode ──────────── */
 @media ((max-width: 960px) and (orientation: landscape)), ((pointer: coarse) and (orientation: landscape)) {
   body { overflow: hidden; }
 
@@ -644,10 +737,18 @@ canvas {
       translate(-50%, -50%)
       translate(var(--mobile-landscape-scene-offset-x, 0px), var(--mobile-landscape-scene-offset-y, 0px));
   }
+
+  .start-screen {
+    padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  }
+
+  .start-screen-panel {
+    max-height: 100%;
+    overflow: auto;
+    padding: 18px 16px 16px;
+  }
 }
 
-
-/* ── Compact HUD breakpoints ──────────────────────────────── */
 @media (max-width: 1100px), (pointer: coarse) {
   .hud {
     grid-template-columns: repeat(3, minmax(0, 1fr));

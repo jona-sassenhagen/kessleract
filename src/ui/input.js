@@ -2,6 +2,7 @@ import { DEBRIS_MODES, POINTER_TAP_SLOP } from "../config.js";
 import { dom } from "./dom.js";
 import { gameStore } from "../core/store.js";
 import { distanceSquared } from "../core/math.js";
+import { soundtrack } from "../audio.js";
 import {
   canAdvanceFromRunEnd,
 } from "../state.js";
@@ -42,10 +43,15 @@ export function bindInputs(actions) {
     restartRun,
     scheduleViewportRefresh,
     setAngleValue,
+    startGame,
     syncHud,
     togglePause,
     trackSatelliteAtPoint,
   } = actions;
+
+  dom.startButton.addEventListener("click", () => {
+    startGame();
+  });
 
   dom.angleInput.addEventListener("input", () => {
     clearTrackedSatellite();
@@ -137,6 +143,14 @@ export function bindInputs(actions) {
   });
 
   window.addEventListener("keydown", (event) => {
+    if (dom.startScreen && !dom.startScreen.hidden) {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        startGame();
+      }
+      return;
+    }
+
     if (event.key === "ArrowUp" || event.key === "ArrowRight") {
       clearTrackingAndSetAngle(Number(dom.angleInput.value) + 1);
       refreshPrediction();
@@ -196,6 +210,14 @@ export function bindInputs(actions) {
         ? DEBRIS_MODES.ordered
         : DEBRIS_MODES.classic;
     refreshPrediction();
+    syncHud();
+  });
+  dom.musicToggleButton.addEventListener("click", () => {
+    soundtrack.toggleMuted();
+    syncHud();
+  });
+  dom.musicNextButton.addEventListener("click", () => {
+    soundtrack.nextTrack(true);
     syncHud();
   });
 }

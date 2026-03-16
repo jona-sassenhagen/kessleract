@@ -3,6 +3,7 @@ import { LEVELS } from "../levels.js";
 import { dom } from "./dom.js";
 import { gameStore } from "../core/store.js";
 import { currentLevel, trackedSatellite } from "../state.js";
+import { soundtrack } from "../audio.js";
 
 export function setAngleValue(angle) {
   const minAngle = Number(dom.angleInput.min);
@@ -16,6 +17,29 @@ export function setAngleValue(angle) {
 export function clearTrackingAndSetAngle(angle, clearTrackedSatellite) {
   clearTrackedSatellite();
   setAngleValue(angle);
+}
+
+function syncSoundtrackHud() {
+  const track = soundtrack.currentTrack();
+  if (dom.musicTrackValue) {
+    dom.musicTrackValue.textContent = track ? track.title : "No Track";
+  }
+
+  if (dom.musicToggleButton) {
+    dom.musicToggleButton.textContent = soundtrack.muted ? "Music: Off" : "Music: On";
+  }
+
+  if (dom.musicStatusValue) {
+    let status = "Armed. Music begins on your first interaction.";
+    if (soundtrack.muted) {
+      status = "Muted. Unmute to resume soundtrack playback.";
+    } else if (soundtrack.audio && !soundtrack.audio.paused) {
+      status = "Playing.";
+    } else if (soundtrack.userUnlocked) {
+      status = "Ready.";
+    }
+    dom.musicStatusValue.textContent = status;
+  }
 }
 
 export function syncHud() {
@@ -78,4 +102,6 @@ export function syncHud() {
   dom.mobileAngleIncrease.disabled = angleButtonsDisabled;
   dom.stopTrackingButton.disabled = !trackedSatellite();
   dom.nextLevelButton.disabled = gameStore.currentLevelIndex === LEVELS.length - 1;
+
+  syncSoundtrackHud();
 }

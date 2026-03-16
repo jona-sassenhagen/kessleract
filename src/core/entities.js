@@ -74,6 +74,42 @@ export function familyStyle(familyName) {
   return ORBIT_FAMILIES[familyName] || ORBIT_FAMILIES.inner;
 }
 
+export function debrisYieldStyle(debrisYield) {
+  if (debrisYield >= 5) {
+    return {
+      color: "#ff6b6b",
+      guideColor: "rgba(255, 107, 107, 0.22)",
+      fillColor: "rgba(255, 235, 235, 0.95)",
+    };
+  }
+  if (debrisYield >= 3) {
+    return {
+      color: "#ffd166",
+      guideColor: "rgba(255, 209, 102, 0.22)",
+      fillColor: "rgba(255, 246, 214, 0.95)",
+    };
+  }
+  if (debrisYield >= 2) {
+    return {
+      color: "#7bdff2",
+      guideColor: "rgba(123, 223, 242, 0.22)",
+      fillColor: "rgba(232, 252, 255, 0.95)",
+    };
+  }
+  if (debrisYield >= 1) {
+    return {
+      color: "#baffc9",
+      guideColor: "rgba(186, 255, 201, 0.2)",
+      fillColor: "rgba(241, 255, 246, 0.95)",
+    };
+  }
+  return {
+    color: "#c8b6ff",
+    guideColor: "rgba(200, 182, 255, 0.2)",
+    fillColor: "rgba(245, 240, 255, 0.95)",
+  };
+}
+
 export function normalizeLevelWells(levelWells) {
   const physicalWells = [];
   const visualWells = [];
@@ -195,7 +231,8 @@ export function recordTrail(entity, maxPoints) {
 
 export function createSatellite(spec, wells) {
   if (spec.motionMode === "ballistic") {
-    const style = familyStyle(spec.orbitFamily);
+    const orbitStyle = familyStyle(spec.orbitFamily);
+    const yieldStyle = debrisYieldStyle(spec.debrisYield);
     return {
       id: allocateBodyId("sat"),
       kind: "satellite",
@@ -208,8 +245,9 @@ export function createSatellite(spec, wells) {
       debrisYield: spec.debrisYield,
       yieldBand: yieldBand(spec.debrisYield),
       orbitFamily: spec.orbitFamily,
-      color: style.color,
-      guideColor: style.guideColor,
+      color: yieldStyle.color,
+      fillColor: yieldStyle.fillColor,
+      guideColor: orbitStyle.guideColor,
       active: true,
       destroyed: false,
       trail: [makePoint(spec.x, spec.y)],
@@ -233,7 +271,8 @@ export function createSatellite(spec, wells) {
   const localVelocity = orbitLocalVelocity(orbit, theta);
   const rotatedPosition = rotateVector(localPosition, orbit.rotation);
   const rotatedVelocity = rotateVector(localVelocity, orbit.rotation);
-  const style = familyStyle(spec.orbitFamily);
+  const orbitStyle = familyStyle(spec.orbitFamily);
+  const yieldStyle = debrisYieldStyle(spec.debrisYield);
   const x = anchor.x + rotatedPosition.x;
   const y = anchor.y + rotatedPosition.y;
 
@@ -250,8 +289,9 @@ export function createSatellite(spec, wells) {
     debrisYield: spec.debrisYield,
     yieldBand: yieldBand(spec.debrisYield),
     orbitFamily: spec.orbitFamily,
-    color: style.color,
-    guideColor: style.guideColor,
+    color: yieldStyle.color,
+    fillColor: yieldStyle.fillColor,
+    guideColor: orbitStyle.guideColor,
     active: true,
     destroyed: false,
     trail: [makePoint(x, y)],

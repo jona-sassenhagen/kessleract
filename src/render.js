@@ -200,12 +200,64 @@ export function drawOrbitGuides() {
   }
 }
 
+function drawSatelliteHull(satellite) {
+  if (satellite.debrisYield >= 5) {
+    ctx.beginPath();
+    ctx.moveTo(0, -satellite.radius - 2);
+    ctx.lineTo(satellite.radius + 2, 0);
+    ctx.lineTo(0, satellite.radius + 2);
+    ctx.lineTo(-satellite.radius - 2, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    return;
+  }
+
+  if (satellite.debrisYield >= 3) {
+    ctx.beginPath();
+    ctx.rect(-satellite.radius, -satellite.radius, satellite.radius * 2, satellite.radius * 2);
+    ctx.fill();
+    ctx.stroke();
+    return;
+  }
+
+  if (satellite.debrisYield >= 2) {
+    ctx.beginPath();
+    ctx.moveTo(0, -satellite.radius - 1);
+    ctx.lineTo(satellite.radius + 1, satellite.radius + 1);
+    ctx.lineTo(-satellite.radius - 1, satellite.radius + 1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    return;
+  }
+
+  if (satellite.debrisYield >= 1) {
+    ctx.beginPath();
+    ctx.arc(0, 0, satellite.radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    return;
+  }
+
+  ctx.beginPath();
+  ctx.moveTo(-satellite.radius, 0);
+  ctx.lineTo(0, -satellite.radius);
+  ctx.lineTo(satellite.radius, 0);
+  ctx.lineTo(0, satellite.radius);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+}
+
 export function drawYieldPips(satellite, scale = 1) {
   const yieldCount = satellite.debrisYield;
   if (yieldCount === 0) {
-    ctx.strokeStyle = "rgba(255, 210, 100, 0.70)";
+    ctx.strokeStyle = "rgba(255, 245, 255, 0.92)";
     ctx.lineWidth = 2 * Math.max(1, scale * 0.9);
     ctx.beginPath();
+    ctx.moveTo(-satellite.radius + 2, -satellite.radius + 2);
+    ctx.lineTo(satellite.radius - 2, satellite.radius - 2);
     ctx.moveTo(-satellite.radius + 2, satellite.radius - 2);
     ctx.lineTo(satellite.radius - 2, -satellite.radius + 2);
     ctx.stroke();
@@ -219,7 +271,7 @@ export function drawYieldPips(satellite, scale = 1) {
   const startX = -((columns - 1) * spacing) / 2;
   const startY = -((rows - 1) * spacing) / 2;
 
-  ctx.fillStyle = "#ffe8a0";
+  ctx.fillStyle = "rgba(48, 26, 0, 0.92)";
   for (let index = 0; index < yieldCount; index += 1) {
     const row = rows === 1 ? 0 : Math.floor(index / columns);
     const col = rows === 1 ? index : index % columns;
@@ -242,12 +294,9 @@ export function drawSatellites() {
     ctx.scale(scale, scale);
     ctx.strokeStyle = satellite.color;
     ctx.lineWidth = (isTracked ? 3.8 : satellite.yieldBand === "large" ? 2.8 : 2.2) * Math.max(1, scale * 0.92);
-    ctx.fillStyle = satellite.debrisYield === 0 ? "rgba(18, 12, 0, 0.92)" : "rgba(255, 240, 195, 0.94)";
+    ctx.fillStyle = satellite.fillColor || "rgba(255, 240, 195, 0.94)";
 
-    ctx.beginPath();
-    ctx.arc(0, 0, satellite.radius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
+    drawSatelliteHull(satellite);
 
     if (isTracked) {
       ctx.strokeStyle = "rgba(232, 160, 0, 0.90)";
@@ -398,7 +447,7 @@ export function drawPreview() {
   ctx.fillText(`TOTAL KILLS     ${preview.totalHits}`, panelX + 16, panelY + 76);
   ctx.fillStyle = "rgba(90, 64, 16, 0.85)";
   ctx.font = "11px 'Share Tech Mono', monospace";
-  ctx.fillText("size=band  pips/slash=debris count", panelX + 16, panelY + 108);
+  ctx.fillText("color+shape+pips = debris count", panelX + 16, panelY + 108);
   ctx.restore();
 }
 
